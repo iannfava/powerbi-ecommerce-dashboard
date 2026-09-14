@@ -1,8 +1,6 @@
 # 📊 Gerenciamento de Indicadores — Diretoria | Dashboard Olist E-commerce
 
-> Preencha os colchetes [ ] restantes com os números e achados reais do seu dashboard. Apague esta linha ao final.
-
-![capa do dashboard](./images/capa.png)
+![capa do dashboard](./images/menu.png)
 
 ## 🔎 Sobre o projeto
 
@@ -68,6 +66,9 @@ R$ 1.359 Mi em vendas totais; o acumulado do ano atual (R$750,66 Mi) já supera 
 
 📄 **[Baixe o PDF completo do dashboard aqui](./Dashboard_Completo.pdf)** — todas as páginas navegáveis, sem precisar do Power BI instalado.
 
+### Bônus — Análise de Cohort (retenção de vendedores)
+![análise de cohort](./images/Analise_cohort.png)
+
 ## 💡 Principais insights
 
 - Em 2018 a empresa cresceu 19,76% em pedidos frente a 2017, mas ficou 25,15% abaixo da meta anual — evidenciando que metas estavam desalinhadas com a capacidade real de crescimento.
@@ -116,10 +117,6 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 *(substitua pelos exemplos reais mais relevantes do seu modelo — especialmente as medidas de clusterização (dispersão por estado/score na Visão Avaliações), Pareto 80-20 (ranking acumulado por estado na Visão Vendas) e cohort (retenção de vendedores mês a mês), que são os maiores diferenciais técnicos do projeto)*
 
-## 🏗️ Modelagem de dados
-
-![modelo de dados](./images/modelo-dados.png)
-
 ## 📁 Estrutura do repositório
 
 ```
@@ -142,9 +139,8 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 ## 📬 Contato
 
-- LinkedIn: [seu link]
-- Portfólio: [se tiver]
-- E-mail: [seu e-mail]
+- LinkedIn: [linkedin.com/in/iannfava](https://www.linkedin.com/in/iannfava)
+- E-mail: iannfava@gmail.com
 
 ---
 ⭐ Se este projeto foi útil ou interessante, deixe uma estrela no repositório!
