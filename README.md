@@ -1,4 +1,4 @@
-# 📊 Gerenciamento de Indicadores — Diretoria | Dashboard Olist E-commerce
+# 📊 Gerenciamento de Indicadores : Diretoria | Dashboard E-commerce
 
 ![capa do dashboard](./images/menu.png)
 
@@ -8,7 +8,7 @@ Dashboard em Power BI que consolida 6 frentes de negócio de um marketplace (Pro
 
 ## 1. 🎯 Problema
 
-Uma empresa de e-commerce vinha tomando decisões estratégicas "no achismo", sem indicadores confiáveis — e isso já havia gerado prejuízos. A diretoria precisava de um painel único que consolidasse, em tempo real, a saúde da operação: volume e status dos pedidos, comportamento de pagamento, satisfação do cliente, performance de vendedores e evolução das vendas, permitindo migrar de decisões intuitivas para uma abordagem **Data Driven**.
+Uma empresa de e-commerce vinha tomando decisões estratégicas "no achismo", sem indicadores confiáveis e isso já havia gerado prejuízos. A diretoria precisava de um painel único que consolidasse, em tempo real, a saúde da operação: volume e status dos pedidos, comportamento de pagamento, satisfação do cliente, performance de vendedores e evolução das vendas, permitindo migrar de decisões intuitivas para uma abordagem **Data Driven**.
 
 **Perguntas de negócio respondidas:**
 
@@ -97,8 +97,8 @@ flowchart LR
 | Etapa | Ferramenta/Técnica |
 |---|---|
 | ETL | Power Query (integração das 9 tabelas da Olist) |
-| Modelagem | Star schema — fato `order_items` + dimensões Produto, Cliente, Vendedor, Pagamento, Avaliação, Tempo |
-| Cálculos | DAX — metas fixas e dinâmicas, clusterização, Pareto 80-20, cohort, inteligência temporal |
+| Modelagem | Star schema : fato `order_items` + dimensões Produto, Cliente, Vendedor, Pagamento, Avaliação, Tempo |
+| Cálculos | DAX : metas fixas e dinâmicas, clusterização, Pareto 80-20, cohort, inteligência temporal |
 | Visualização | Power BI Desktop, navegação por página inicial com botões |
 | Versionamento | Git / GitHub |
 
@@ -108,7 +108,7 @@ flowchart LR
 
 ## 4. 💻 Implementação
 
-### Home — Navegação
+### Home - Navegação
 ![home](./images/menu.png)
 
 ### Visão Produto
@@ -182,10 +182,10 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 ### Resultados
 
-- Em 2018 a empresa cresceu 19,76% em pedidos frente a 2017, mas ficou 25,15% abaixo da meta anual — evidenciando que as metas estavam desalinhadas com a capacidade real de crescimento.
+- Em 2018 a empresa cresceu 19,76% em pedidos frente a 2017, mas ficou 25,15% abaixo da meta anual, evidenciando que as metas estavam desalinhadas com a capacidade real de crescimento.
 - Cartão de crédito domina os pagamentos (73,92%), concentração que pode ser explorada em negociações com operadoras ou em campanhas de meios alternativos.
 - Apesar de 77,14% das avaliações serem "Ótima", o tempo médio de resposta a avaliações sem retorno no mesmo dia (3,42 dias) é um ponto de atenção para retenção de clientes.
-- A receita de vendedores é extremamente concentrada: apenas 3 dos 3.095 vendedores romperam R$500 mil em vendas, e SP domina o total de vendas por estado — padrão também confirmado pela curva de Pareto 80-20.
+- A receita de vendedores é extremamente concentrada: apenas 3 dos 3.095 vendedores romperam R$500 mil em vendas, e SP domina o total de vendas por estado, padrão também confirmado pela curva de Pareto 80-20.
 - O catálogo de produtos é liderado por categorias de casa e lazer (Cama_Mesa_Banho, Esporte_Lazer, Móveis_Decoração), o que pode orientar decisões de sortimento e marketing.
 
 ### Aprendizados
@@ -194,9 +194,8 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 ### Próximos passos
 
-- [ ] Publicar o relatório no Power BI Service para navegação online (não apenas prints/PDF)
+- [ ] Publicar o relatório no Power BI Service para navegação online (não apenas prints/PDF)*********
 - [ ] Automatizar a atualização dos dados via gateway/agendamento
-- [ ] Adicionar validações de qualidade de dados no Power Query (ex: alertas de linhas órfãs no relacionamento)
 
 ---
 
@@ -206,4 +205,3 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 - E-mail: iannfava@gmail.com
 
 ---
-⭐ Se este projeto foi útil ou interessante, deixe uma estrela no repositório!
