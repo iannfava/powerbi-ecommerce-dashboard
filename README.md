@@ -2,179 +2,174 @@
 
 ![capa do dashboard](./images/menu.png)
 
-Dashboard em Power BI que consolida 6 frentes de negócio de um marketplace (Produto, Pagamento, Pedido, Avaliações, Vendedores e Vendas) em um único painel de gestão para diretoria, construído sobre o dataset público da Olist (~100 mil pedidos, 2016–2018).
+Dashboard em Power BI que consolida 6 frentes de um marketplace (Produto, Pagamento, Pedido, Avaliações, Vendedores e Vendas) em um painel de gestão para diretoria, construído sobre o dataset público da Olist (99.441 pedidos, 2016 a 2018).
 
 ---
 
 ## 1. 🎯 Problema
 
-Uma empresa de e-commerce vinha tomando decisões estratégicas "no achismo", sem indicadores confiáveis e isso já havia gerado prejuízos. A diretoria precisava de um painel único que consolidasse, em tempo real, a saúde da operação: volume e status dos pedidos, comportamento de pagamento, satisfação do cliente, performance de vendedores e evolução das vendas, permitindo migrar de decisões intuitivas para uma abordagem **Data Driven**.
-
-**Perguntas de negócio respondidas:**
+Uma empresa de e-commerce tomava decisões estratégicas "no achismo", sem indicadores confiáveis, e isso já havia gerado prejuízos. A diretoria precisava de um painel único para acompanhar a saúde da operação: volume e status dos pedidos, comportamento de pagamento, satisfação do cliente, desempenho dos vendedores e evolução das vendas, migrando para uma abordagem **Data Driven**.
 
 | Visão | Pergunta central |
 |---|---|
-| Produto | Quais categorias mais vendem e geram mais receita? |
-| Pagamento | Quais formas de pagamento e parcelamento predominam? |
+| Produto | Como o catálogo se distribui entre categorias (produtos e fotos)? |
+| Pagamento | Quais formas de pagamento predominam e quanto movimentam por status do pedido? |
 | Pedido | Como os pedidos avançam frente às metas e aos anos anteriores? |
-| Avaliações | O que mais influencia avaliações ruins, médias e boas? |
-| Vendedores | Quem são os melhores/piores vendedores e onde estão? |
-| Vendas | Como a receita evolui no tempo e quais padrões de sazonalidade/cohort existem? |
+| Avaliações | O que influencia a classificação das avaliações e como os estados se agrupam? |
+| Vendedores | Quantos vendedores batem a meta, quanto vendem e onde estão? |
+| Vendas | Como a receita evolui no tempo, como se concentra por estado (Pareto) e quanto os vendedores retêm (cohort)? |
 
 ---
 
 ## 2. 🏗️ Arquitetura
 
-Fluxo completo do dado, da origem pública até o relatório final entregue como portfólio:
-
 ```mermaid
 flowchart LR
-    subgraph FONTE["📦 Fonte de Dados"]
-        A["Kaggle — Brazilian E-Commerce<br/>Public Dataset (Olist)<br/>9 tabelas CSV · 2016-2018"]
+    subgraph FONTE["📦 Fonte"]
+        A["Kaggle: Brazilian E-Commerce<br/>Public Dataset (Olist)<br/>arquivos CSV, 2016 a 2018"]
     end
 
-    subgraph ETL["🔧 ETL — Power Query"]
-        B["Limpeza e tratamento<br/>das 9 tabelas"]
-        C["Tipagem, colunas calculadas<br/>e tradução de categorias"]
+    subgraph ETL["🔧 Power Query"]
+        B["Tipagem com localidade en-US<br/>(separador decimal)"]
+        C["Limpeza de texto, colunas<br/>derivadas e mesclagens"]
+        D["Tabela Calendário"]
     end
 
-    subgraph MODELO["⭐ Modelagem — Star Schema"]
-        D[("Fato<br/>order_items")]
-        E["Dim Orders"]
-        F["Dim Customers"]
-        G["Dim Products"]
-        H["Dim Sellers"]
-        I["Dim Payments"]
-        J["Dim Reviews"]
-        K["Dim Calendário"]
+    subgraph MODELO["🔗 Modelo de dados"]
+        CAL["Calendário"]
+        ORD["orders"]
+        ITE["order_items"]
+        REV["order_reviews"]
+        PAY["payments"]
+        CUS["costumers"]
+        SEL["sellers"]
+        PRO["products"]
     end
 
-    subgraph DAXL["🧮 Camada DAX"]
-        L["Metas Fixas<br/>e Dinâmicas"]
-        M["Clusterização"]
-        N["Pareto 80-20"]
-        O["Cohort"]
-        P["Inteligência<br/>Temporal"]
+    subgraph DAXL["🧮 DAX"]
+        M1["Metas fixas e<br/>meta dinâmica (what-if)"]
+        M2["Pareto 80-20<br/>(RANKX, TOPN, ALLSELECTED)"]
+        M3["Cohort de retenção<br/>de vendedores"]
+        M4["Inteligência temporal<br/>(YTD, ano anterior)"]
     end
 
-    subgraph REPORT["📊 Power BI Report"]
-        Q["Menu / Home"]
-        R["6 Visões de Negócio:<br/>Produto · Pagamento · Pedido<br/>Avaliações · Vendedores · Vendas"]
+    subgraph REPORT["📊 Relatório"]
+        R1["Menu de navegação"]
+        R2["6 visões + Cohort"]
     end
 
     subgraph ENTREGA["🚀 Entrega"]
-        S[".pbix + PDF + Prints"]
-        T["Repositório GitHub<br/>(Portfólio)"]
+        E1[".pbix, PDF e prints"]
+        E2["GitHub"]
     end
 
     A --> B --> C --> D
-    D --- E
-    D --- F
-    D --- G
-    D --- H
-    D --- I
-    D --- J
-    D --- K
-    D --> L
-    D --> M
-    D --> N
-    D --> O
-    D --> P
-    L --> Q
-    M --> Q
-    N --> Q
-    O --> Q
-    P --> Q
-    Q --> R --> S --> T
+    C --> MODELO
+    ORD -- "Data de compra" --> CAL
+    ITE -- "Data de envio" --> CAL
+    REV -- "review_creation_date" --> CAL
+    ITE -- "seller_id" --> SEL
+    PAY -- "order_id" --> ORD
+    ORD <-- "customer_id (1:1)" --> CUS
+    MODELO --> DAXL --> R1 --> R2 --> E1 --> E2
 ```
 
-**Modelo de dados:** esquema estrela clássico, com `order_items` como tabela fato e dimensões de Pedido, Cliente, Produto, Vendedor, Pagamento, Avaliação e uma tabela Calendário central (relacionada a `orders`, `order_items` e `order_reviews` por suas respectivas datas), permitindo inteligência temporal em todas as visões.
+**Modelo de dados:** uma tabela Calendário compartilhada por pedidos, itens e avaliações, cada um pela sua data. Pagamentos se ligam a pedidos, e pedidos a clientes (`customer_unique_id`, para contar pessoas e não pedidos). Itens se ligam a vendedores. A tabela de produtos é analisada de forma independente na Visão Produto. As coordenadas de geolocalização foram incorporadas à tabela de vendedores.
 
 ---
 
 ## 3. 🛠️ Stack
 
-| Etapa | Ferramenta/Técnica |
+| Etapa | Ferramenta |
 |---|---|
-| ETL | Power Query (integração das 9 tabelas da Olist) |
-| Modelagem | Star schema : fato `order_items` + dimensões Produto, Cliente, Vendedor, Pagamento, Avaliação, Tempo |
-| Cálculos | DAX : metas fixas e dinâmicas, clusterização, Pareto 80-20, cohort, inteligência temporal |
-| Visualização | Power BI Desktop, navegação por página inicial com botões |
-| Versionamento | Git / GitHub |
-
-**Técnicas de destaque:** clusterização (dispersão por estado/score), curva de Pareto 80-20, análise de cohort de retenção de vendedores, parâmetro *what-if* para simular variação de meta em tela.
+| ETL | Power Query (linguagem M) |
+| Modelagem | Relacionamentos 1:N e 1:1 no Power BI |
+| Cálculos | DAX |
+| Visualização | Power BI Desktop, com tema próprio e menu de navegação por botões |
+| Versionamento | Git e GitHub |
 
 ---
 
 ## 4. 💻 Implementação
 
-### Home - Navegação
-![home](./images/menu.png)
+### Menu
+![menu](./images/menu.png)
 
 ### Visão Produto
 ![visão produto](./images/Visão_produto.png)
-32.951 produtos cadastrados em 74 categorias, com destaque para Cama_Mesa_Banho (3.029), Esporte_Lazer (2.867) e Móveis_Decoração (2.657).
+32.951 produtos em 74 categorias, liderados por Cama_Mesa_Banho (3.029), Esporte_Lazer (2.867) e Móveis_Decoração (2.657).
 
 ### Visão Pagamento
 ![visão pagamento](./images/Visão_pagamento.png)
-R$ 1.601 Mi em pagamentos, com Cartão de Crédito respondendo por 73,92% do volume (77 mil pagamentos), seguido de Boleto (19,04%) e Voucher (5,56%).
+R$ 16 milhões em 103.886 pagamentos. Cartão de crédito responde por 73,92% dos pagamentos, seguido de boleto (19,04%) e voucher (5,56%). Valor médio por pagamento: R$ 154,10.
 
 ### Visão Pedido
 ![visão pedido](./images/Visão_pedidos.png)
-54.011 pedidos em 2018 (+19,76% vs. 2017), mas 25,15% abaixo da meta anual de 72,16 mil — SP, RJ e MG concentram o maior volume de pedidos.
+54.011 pedidos em 2018, crescimento de 19,76% sobre 2017. A meta anual exigia crescer 60% sobre o ano anterior (72,16 mil pedidos), e a empresa ficou 25,15% abaixo dela. No último mês completo (agosto de 2018), 6.512 pedidos contra meta de 6,93 mil (-6,03%).
 
 ### Visão Avaliações
 ![visão avaliações](./images/Visão_avaliacoes.png)
-77,14% das avaliações são "Ótima", com tempo médio de 3,42 dias para retorno de avaliações sem resposta no mesmo dia; clientes do Amapá (AP) têm 1,18x mais chance de dar avaliação "Ótima".
+98.410 avaliações, 77,14% delas "Ótima". Tempo médio de 3,42 dias para avaliações sem retorno no mesmo dia. Clientes do Amapá têm 1,18x mais chance de avaliar como "Ótima".
 
 ### Visão Vendedores
 ![visão vendedores](./images/Visão_vendedores.png)
-3.095 vendedores, dos quais 2.376 bateram a meta; apenas 3 vendedores romperam a marca de R$500 mil em vendas — SP concentra praticamente toda a receita entre os estados.
+3.095 vendedores e R$ 13,6 milhões em vendas. Com o parâmetro de meta padrão (R$ 50 de valor médio por item), 2.376 vendedores atingem a meta. Apenas 3 vendedores venderam itens acima de R$ 5 mil.
 
 ### Visão Vendas
 ![visão vendas](./images/Visão_vendas.png)
-R$ 1.359 Mi em vendas totais; o acumulado do ano atual (R$750,66 Mi) já supera o do ano anterior no mesmo período (R$603 Mi), taxa de crescimento acumulado de 24,39%.
+Vendas acumuladas no ano de R$ 7,51 milhões contra R$ 6 milhões no mesmo período do ano anterior (+24,39%). São Paulo responde por R$ 5,2 milhões, cerca de 38% do total.
 
-### Bônus — Análise de Cohort (retenção de vendedores)
+### Análise de Cohort (retenção de vendedores)
 ![análise de cohort](./images/Analise_cohort.png)
 
-📄 **[Baixe o PDF completo do dashboard aqui](./Dashboard_Completo.pdf)** — todas as páginas navegáveis, sem precisar do Power BI instalado.
+📄 **[PDF completo do dashboard](./Dashboard_Completo.pdf)**, para navegar sem o Power BI instalado.
 
 ### Exemplos de medidas DAX
 
 ```DAX
-Total de Vendas = SUM(Order_Items[price])
+Total de Vendas = SUM('order_items'[price])
 
-Taxa de Crescimento (17-18) = 
-DIVIDE([Qtd. de Pedidos 2018] - [Qtd. de Pedidos 2017], [Qtd. de Pedidos 2017])
+Taxa de crescimento (17-18) =
+DIVIDE([Qtd. de Pedidos (2018)], [Qtd de Pedidos (2017)]) - 1
 
-% Atingimento da Meta Anual = 
-DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
+meta da organização = [Qtd. de Pedidos (ano anterior)] * 1.6
+
+Qtd. de Clientes = DISTINCTCOUNT(costumers[customer_unique_id])
+
+Pareto - Ranking =
+RANKX(ALLSELECTED(order_items[Estado do Cliente]), [Total de Vendas])
+
+Pareto - Valor Acumulado =
+CALCULATE(
+    [Total de Vendas],
+    TOPN([Pareto - Ranking], ALLSELECTED(order_items[Estado do Cliente]), [Total de Vendas]))
+
+Pareto - % Acumulado =
+DIVIDE(
+    [Pareto - Valor Acumulado],
+    CALCULATE([Total de Vendas], ALLSELECTED(order_items[Estado do Cliente])))
 ```
-
-*(substitua pelos exemplos reais mais relevantes do seu modelo — especialmente clusterização, Pareto e cohort)*
 
 ### Fonte dos dados
 
 - **Origem:** [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (Kaggle)
-- **Tabelas:** `olist_orders_dataset`, `olist_order_items_dataset`, `olist_order_payments_dataset`, `olist_order_reviews_dataset`, `olist_products_dataset`, `olist_sellers_dataset`, `olist_customers_dataset`, `product_category_name_translation`, `olist_geolocation_dataset`
-- **Período:** 2016–2018
+- **Tabelas usadas:** `olist_orders_dataset`, `olist_order_items_dataset`, `olist_order_payments_dataset`, `olist_order_reviews_dataset`, `olist_products_dataset`, `olist_sellers_dataset`, `olist_customers_dataset`, `olist_geolocation_dataset`
+- **Período:** 2016 a 2018. Setembro e outubro de 2018 têm poucos pedidos (fim do dataset) e ficam fora do acompanhamento mensal de metas.
 
 ### Estrutura do repositório
 
 ```
-├── images/                  # prints de todas as páginas do dashboard
-├── Dashboard_Completo.pdf   # export em PDF para visualização sem Power BI
-├── gerenciamento-indicadores-olist.pbix   # arquivo original do Power BI
-├── dataset/                 # LEIA-ME.md com o link do Kaggle (dados não versionados por serem grandes/públicos)
-├── CONTEXTO_PROJETO.md      # contexto detalhado do projeto
+├── images/                                # prints das páginas do dashboard
+├── dataset/LEIA-ME.md                     # link do Kaggle (CSVs não versionados)
+├── Dashboard_Completo.pdf                 # export em PDF
+├── gerenciamento-indicadores-olist.pbix   # arquivo do Power BI
 └── README.md
 ```
 
 ### Como visualizar
 
-- **Sem Power BI instalado:** veja os [prints acima](#4--implementação) ou baixe o [PDF completo](./Dashboard_Completo.pdf)
-- **Com Power BI Desktop:** baixe o arquivo `.pbix` deste repositório e abra localmente
+- **Sem Power BI:** veja os prints acima ou o [PDF completo](./Dashboard_Completo.pdf).
+- **Com Power BI Desktop:** baixe o `.pbix` e abra localmente. Para atualizar os dados, baixe os CSVs do Kaggle e ajuste o caminho das fontes no Power Query.
 
 ---
 
@@ -182,20 +177,28 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 ### Resultados
 
-- Em 2018 a empresa cresceu 19,76% em pedidos frente a 2017, mas ficou 25,15% abaixo da meta anual, evidenciando que as metas estavam desalinhadas com a capacidade real de crescimento.
-- Cartão de crédito domina os pagamentos (73,92%), concentração que pode ser explorada em negociações com operadoras ou em campanhas de meios alternativos.
-- Apesar de 77,14% das avaliações serem "Ótima", o tempo médio de resposta a avaliações sem retorno no mesmo dia (3,42 dias) é um ponto de atenção para retenção de clientes.
-- A receita de vendedores é extremamente concentrada: apenas 3 dos 3.095 vendedores romperam R$500 mil em vendas, e SP domina o total de vendas por estado, padrão também confirmado pela curva de Pareto 80-20.
-- O catálogo de produtos é liderado por categorias de casa e lazer (Cama_Mesa_Banho, Esporte_Lazer, Móveis_Decoração), o que pode orientar decisões de sortimento e marketing.
+- A empresa cresceu 19,76% em pedidos de 2017 para 2018, mas a meta pedia 60%. O resultado ficou 25,15% abaixo da meta anual, o que sugere metas descoladas da capacidade real de crescimento.
+- A recompra é baixa: 99.441 pedidos para 96.096 clientes, ou seja, quase todo cliente comprou uma única vez.
+- As vendas são concentradas: São Paulo sozinho responde por cerca de 38% da receita.
+- Cartão de crédito domina os pagamentos (73,92%).
+- 77,14% das avaliações são "Ótima", mas avaliações sem retorno no mesmo dia levam em média 3,42 dias para resposta.
 
 ### Aprendizados
 
-[O que foi mais desafiador tecnicamente? Ex: "Implementar a análise de cohort em DAX puro" ou "Modelar a clusterização de clientes sem usar Python, apenas DAX/Power Query".]
+Na revisão do projeto, encontrei e corrigi problemas que não apareciam à primeira vista:
+
+- **Separador decimal:** os CSVs usam ponto decimal, e o Power BI em português leu `58.90` como `5890`. Todos os valores em reais estavam 100 vezes maiores. Corrigi a tipagem no Power Query com a localidade en-US e ajustei os limites das medidas para a escala real.
+- **Relacionamentos faltando:** gráficos da Visão Pagamento repetiam o mesmo total para todos os status, porque `payments` não estava ligada a `orders`. Criar o relacionamento corrigiu os três visuais da página.
+- **Clientes x pedidos:** na Olist, `customer_id` muda a cada pedido. Contar clientes reais exigiu usar `customer_unique_id`.
+- **Dados incompletos:** um "-99,95%" na meta mensal era só o fim do dataset (4 pedidos em outubro de 2018), e não um problema de negócio.
+- **Higiene do modelo:** removi medidas duplicadas de exercícios e renomeei medidas com nomes enganosos (uma "média" que calculava mediana).
 
 ### Próximos passos
 
-- [ ] Publicar o relatório no Power BI Service para navegação online (não apenas prints/PDF)*********
-- [ ] Automatizar a atualização dos dados via gateway/agendamento
+- [ ] Publicar o relatório no Power BI Service para navegação online
+- [ ] Parametrizar o caminho dos arquivos no Power Query, para qualquer pessoa conseguir atualizar os dados
+- [ ] Ligar `products` a `order_items` para analisar vendas por categoria
+- [ ] Definir o limite de desconto de frete com base na distribuição de preços, em vez de um valor fixo
 
 ---
 
@@ -203,5 +206,3 @@ DIVIDE([Qtd. de Pedidos], [Meta Anual de Pedidos]) - 1
 
 - LinkedIn: [linkedin.com/in/iannfava](https://www.linkedin.com/in/iannfava)
 - E-mail: iannfava@gmail.com
-
----
