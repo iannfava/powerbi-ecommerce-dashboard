@@ -23,58 +23,41 @@ Uma empresa de e-commerce tomava decisões estratégicas "no achismo", sem indic
 
 ## 2. 🏗️ Arquitetura
 
+### Fluxo do dado
+
 ```mermaid
-flowchart LR
-    subgraph FONTE["📦 Fonte"]
-        A["Kaggle: Brazilian E-Commerce<br/>Public Dataset (Olist)<br/>arquivos CSV, 2016 a 2018"]
-    end
-
-    subgraph ETL["🔧 Power Query"]
-        B["Tipagem com localidade en-US<br/>(separador decimal)"]
-        C["Limpeza de texto, colunas<br/>derivadas e mesclagens"]
-        D["Tabela Calendário"]
-    end
-
-    subgraph MODELO["🔗 Modelo de dados"]
-        CAL["Calendário"]
-        ORD["orders"]
-        ITE["order_items"]
-        REV["order_reviews"]
-        PAY["payments"]
-        CUS["costumers"]
-        SEL["sellers"]
-        PRO["products"]
-    end
-
-    subgraph DAXL["🧮 DAX"]
-        M1["Metas fixas e<br/>meta dinâmica (what-if)"]
-        M2["Pareto 80-20<br/>(RANKX, TOPN, ALLSELECTED)"]
-        M3["Cohort de retenção<br/>de vendedores"]
-        M4["Inteligência temporal<br/>(YTD, ano anterior)"]
-    end
-
-    subgraph REPORT["📊 Relatório"]
-        R1["Menu de navegação"]
-        R2["6 visões + Cohort"]
-    end
-
-    subgraph ENTREGA["🚀 Entrega"]
-        E1[".pbix, PDF e prints"]
-        E2["GitHub"]
-    end
-
-    A --> B --> C --> D
-    C --> MODELO
-    ORD -- "Data de compra" --> CAL
-    ITE -- "Data de envio" --> CAL
-    REV -- "review_creation_date" --> CAL
-    ITE -- "seller_id" --> SEL
-    PAY -- "order_id" --> ORD
-    ORD <-- "customer_id (1:1)" --> CUS
-    MODELO --> DAXL --> R1 --> R2 --> E1 --> E2
+flowchart TB
+    A["📦 Fonte<br/>CSVs públicos da Olist (Kaggle)"]
+    B["🔧 Power Query<br/>tipos com localidade en-US, limpeza,<br/>mesclagens e tabela Calendário"]
+    C["🔗 Modelo de dados<br/>8 tabelas e 6 relacionamentos"]
+    D["🧮 DAX<br/>metas, meta dinâmica, Pareto,<br/>cohort e inteligência temporal"]
+    E["📊 Relatório<br/>menu, 6 visões e cohort"]
+    F["🚀 Entrega<br/>.pbix, PDF e prints no GitHub"]
+    A --> B --> C --> D --> E --> F
 ```
 
-**Modelo de dados:** uma tabela Calendário compartilhada por pedidos, itens e avaliações, cada um pela sua data. Pagamentos se ligam a pedidos, e pedidos a clientes (`customer_unique_id`, para contar pessoas e não pedidos). Itens se ligam a vendedores. A tabela de produtos é analisada de forma independente na Visão Produto. As coordenadas de geolocalização foram incorporadas à tabela de vendedores.
+### Modelo de dados
+
+```mermaid
+flowchart TB
+    CAL["📅 Calendário"]
+    ORD["orders"]
+    ITE["order_items"]
+    REV["order_reviews"]
+    PAY["payments"]
+    CUS["costumers"]
+    SEL["sellers"]
+    PRO["products<br/>(análise independente)"]
+
+    ORD -->|Data de compra| CAL
+    ITE -->|Data de envio| CAL
+    REV -->|review_creation_date| CAL
+    PAY -->|order_id| ORD
+    ITE -->|seller_id| SEL
+    ORD <-->|customer_id, 1:1| CUS
+```
+
+As setas vão do lado "muitos" para o lado "um" de cada relacionamento. A tabela Calendário é compartilhada por pedidos, itens e avaliações, cada um pela sua data. Pagamentos se ligam a pedidos, e pedidos a clientes (`customer_unique_id`, para contar pessoas e não pedidos). Itens se ligam a vendedores. A tabela de produtos é analisada de forma independente na Visão Produto, e as coordenadas de geolocalização foram incorporadas à tabela de vendedores.
 
 ---
 
