@@ -31,26 +31,9 @@ flowchart TB
 
 ### Modelo de dados
 
-```mermaid
-flowchart TB
-    CAL["📅 Calendário"]
-    ORD["orders"]
-    ITE["order_items"]
-    REV["order_reviews"]
-    PAY["payments"]
-    CUS["costumers"]
-    SEL["sellers"]
-    PRO["products<br/>(análise independente)"]
+![modelo de dados](./images/modelo_dados.png)
 
-    ORD -->|Data de compra| CAL
-    ITE -->|Data de envio| CAL
-    REV -->|review_creation_date| CAL
-    PAY -->|order_id| ORD
-    ITE -->|seller_id| SEL
-    ORD <-->|customer_id, 1:1| CUS
-```
-
-As setas vão do lado "muitos" para o lado "um". A Calendário é compartilhada por pedidos, itens e avaliações, cada um pela sua data.
+A tabela Calendário é compartilhada por pedidos, itens e avaliações, cada um pela sua data. Os relacionamentos `payments` → `orders` e `orders` ↔ `costumers` foram criados na revisão (seção 5).
 
 ---
 
@@ -84,26 +67,6 @@ As setas vão do lado "muitos" para o lado "um". A Calendário é compartilhada 
 
 📄 **[PDF com as 8 páginas](./Dashboard_Completo.pdf)**, para ver sem o Power BI. Para abrir o `.pbix`, use o Power BI Desktop. Os CSVs não estão no repositório: baixe no [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) e ajuste o caminho das fontes no Power Query.
 
-<details>
-<summary><b>Exemplo de DAX: Pareto 80-20 por estado</b></summary>
-
-```DAX
-Pareto - Ranking =
-RANKX(ALLSELECTED(order_items[Estado do Cliente]), [Total de Vendas])
-
-Pareto - Valor Acumulado =
-CALCULATE(
-    [Total de Vendas],
-    TOPN([Pareto - Ranking], ALLSELECTED(order_items[Estado do Cliente]), [Total de Vendas]))
-
-Pareto - % Acumulado =
-DIVIDE(
-    [Pareto - Valor Acumulado],
-    CALCULATE([Total de Vendas], ALLSELECTED(order_items[Estado do Cliente])))
-```
-
-</details>
-
 ---
 
 ## 5. 🔍 Revisão, resultados e próximos passos
@@ -121,6 +84,29 @@ DIVIDE(
 
 Também removi medidas duplicadas de exercícios e renomeei medidas com nomes enganosos.
 
+<details>
+<summary><b>Ver o antes e depois no código</b></summary>
+
+**Separador decimal (Power Query, tabela `order_items`)**
+```
+Antes:  ... {"price", type number}, {"freight_value", type number}})
+Depois: ... {"price", type number}, {"freight_value", type number}}, "en-US")
+```
+
+**Contagem de clientes (DAX)**
+```DAX
+Antes:  Qtd. de Clientes = DISTINCTCOUNT(orders[customer_id])
+Depois: Qtd. de Clientes = DISTINCTCOUNT(costumers[customer_unique_id])
+```
+
+**Avaliações nota 4 e 5 (DAX)**
+```DAX
+Antes:  order_reviews[review_score] = 4 || order_reviews[review_id] = 5
+Depois: order_reviews[review_score] = 4 || order_reviews[review_score] = 5
+```
+
+</details>
+
 ### Principais achados
 
 - **Metas descoladas da realidade:** os pedidos cresceram 19,76% em 2018, mas a meta pedia 60%. Resultado: 25,15% abaixo da meta anual.
@@ -131,9 +117,9 @@ Também removi medidas duplicadas de exercícios e renomeei medidas com nomes en
 
 ### Próximos passos
 
-- Ligar `products` a `order_items` para analisar vendas por categoria
-- Parametrizar o caminho dos arquivos, para qualquer pessoa conseguir atualizar os dados
-- Publicar no Power BI Service para navegação online
+- **Vendas por categoria:** ligar `order_items` a `products` pelo `product_id`, como fiz com `payments` e `orders`.
+- **Atualização por qualquer pessoa:** criar um parâmetro no Power Query com a pasta dos CSVs, para quem baixar o projeto trocar um único valor.
+- **Navegação online:** publicar no Power BI Service, que exige conta Microsoft corporativa ou de estudante.
 
 ---
 
