@@ -2,7 +2,7 @@
 
 ![capa do dashboard](./images/menu.png)
 
-Dashboard em Power BI com 6 visões de negócio de um marketplace, construído sobre o dataset público da Olist (99.441 pedidos, 2016 a 2018).
+Dashboard em Power BI com 6 visões de negócio de um marketplace, construído sobre o [dataset público da Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (99.441 pedidos, 2016 a 2018).
 
 > **Sobre este projeto:** a base veio de um curso guiado. Depois, fiz uma revisão independente e encontrei erros que distorciam os números, como valores em reais 100 vezes maiores e gráficos repetindo o mesmo total em todas as categorias. O que encontrei e como corrigi está na seção 5.
 
@@ -65,7 +65,7 @@ A tabela Calendário é compartilhada por pedidos, itens e avaliações, cada um
 </tr>
 </table>
 
-📄 **[PDF com as 8 páginas](./Dashboard_Completo.pdf)**, para ver sem o Power BI. Para abrir o `.pbix`, use o Power BI Desktop. Os CSVs não estão no repositório: baixe no [Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) e ajuste o caminho das fontes no Power Query.
+📄 **[Ver todas as páginas em PDF](./Dashboard_Completo.pdf)**
 
 ---
 
